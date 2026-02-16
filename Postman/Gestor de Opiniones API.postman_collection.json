@@ -1,0 +1,517 @@
+{
+  "info": {
+    "_postman_id": "5485c6a7-eb5d-4359-9d3e-4045ae07a431",
+    "name": "Gestor de Opiniones API",
+    "description": "Colección completa para probar la API del Gestor de Opiniones.\nBase URL: http://localhost:3001/GestorOpiniones/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48421810",
+    "_collection_link": "https://go.postman.co/collection/48421810-5485c6a7-eb5d-4359-9d3e-4045ae07a431?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "0. System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Usuario Test\",\n    \"username\": \"usertest\",\n    \"email\": \"test@email.com\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Auto-Set Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.token) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "    console.log(\"Token actualizado automáticamente: \" + jsonData.token);",
+                  "} else {",
+                  "    console.log(\"No se pudo obtener el token\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"test@email.com\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Al hacer login exitoso, el token se guarda automáticamente en la variable {{token}} de la colección."
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Perfil Auth",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Usuario Test Modificado\",\n    \"username\": \"usertest_new\"\n    // \"oldPassword\": \"123456\",\n    // \"newPassword\": \"654321\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Publications",
+      "item": [
+        {
+          "name": "List Publications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/publications?limit=5&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Publication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Mi primera opinión\",\n    \"category\": \"Tecnología\",\n    \"content\": \"Estoy probando la API de gestor de opiniones y funciona excelente.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/publications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Publication By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/publications/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PONER_ID_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Publication",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Mi primera opinión (Editada)\",\n    \"content\": \"He actualizado el contenido de mi opinión.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/publications/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PONER_ID_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Publication",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/publications/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PONER_ID_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Comments",
+      "item": [
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"Estoy totalmente de acuerdo con tu opinión.\",\n    \"publicationId\": \"PONER_ID_PUBLICACION_AQUI\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comments by Pub",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/publication/:publicationId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "publication",
+                ":publicationId"
+              ],
+              "variable": [
+                {
+                  "key": "publicationId",
+                  "value": "PONER_ID_PUBLICACION_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"Comentario corregido.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PONER_ID_COMENTARIO_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PONER_ID_COMENTARIO_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/GestorOpiniones/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
