@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">GestorOpiniones</a>
+        <div class="nav-links">
+            <a href="dashboard.html">Volver</a>
+            <button id="logout-btn">Salir</button>
+        </div>
+    </nav>
+
+    <div class="auth-container" style="max-width: 600px;">
+        <h2>Mi Perfil</h2>
+        <form id="profile-form" style="margin-top: 2rem;">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="name">
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username">
+            </div>
+            
+            <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #ddd;">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem;">Cambiar Contraseña</h3>
+            
+            <div class="form-group">
+                <label>Contraseña Actual (Requerida para cambios)</label>
+                <input type="password" id="oldPassword">
+            </div>
+            <div class="form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" id="newPassword">
+            </div>
+
+            <button type="submit" class="btn w-100">Actualizar Datos</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        import { isAuthenticated, logout } from './js/auth.js';
+        import { showToast } from './js/utils.js';
+
+        if (!isAuthenticated()) window.location.href = 'login.html';
+        document.getElementById('logout-btn').addEventListener('click', logout);
+
+        // Cargar datos
+        const loadProfile = async () => {
+            try {
+                const data = await api.get('/users/profile');
+                document.getElementById('name').value = data.user.name;
+                document.getElementById('username').value = data.user.username;
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById('name').value,
+                username: document.getElementById('username').value
+            };
+            
+            const oldPass = document.getElementById('oldPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+
+            if (newPass) {
+                if (!oldPass) return showToast('Ingresa tu contraseña actual', 'error');
+                body.oldPassword = oldPass;
+                body.newPassword = newPass;
+            }
+
+            try {
+                await api.put('/users/profile', body);
+                showToast('Perfil actualizado correctamente', 'success');
+                // Limpiar campos de contraseña
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+            } catch (err) {
+                // Error manejado
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>

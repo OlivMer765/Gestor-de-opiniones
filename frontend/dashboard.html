@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">GestorOpiniones</a>
+        <div class="nav-links">
+            <a href="profile.html">Mi Perfil</a>
+            <button id="logout-btn">Salir</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Formulario Crear Publicación -->
+        <div class="card" style="border-left: 5px solid var(--primary);">
+            <h3 style="margin-bottom: 1rem;">¿Qué estás pensando?</h3>
+            <form id="create-pub-form">
+                <div class="form-group">
+                    <input type="text" id="title" placeholder="Título de tu opinión (mín 3 letras)" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="category" placeholder="Categoría (ej. Tecnología, Deportes)" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="content" placeholder="Escribe tu opinión aquí... (mín 10 caracteres)" required minlength="10" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn">Publicar Opinión</button>
+            </form>
+        </div>
+
+        <h2 style="margin-bottom: 1rem;">Publicaciones Recientes</h2>
+        <div id="feed-container">
+            <div style="text-align:center;">Cargando...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        import { isAuthenticated, logout } from './js/auth.js';
+        import { escapeHtml, formatDate, showToast } from './js/utils.js';
+
+        if (!isAuthenticated()) window.location.href = 'login.html';
+        document.getElementById('logout-btn').addEventListener('click', logout);
+
+        // Crear publicación
+        document.getElementById('create-pub-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                content: document.getElementById('content').value
+            };
+
+            try {
+                await api.post('/publications', body);
+                showToast('Publicado correctamente', 'success');
+                e.target.reset();
+                loadFeed(); // Recargar feed
+            } catch (error) {
+                // Error manejado en api.js
+            }
+        });
+
+        // Cargar feed
+        const loadFeed = async () => {
+            const container = document.getElementById('feed-container');
+            try {
+                const data = await api.get('/publications');
+                
+                if (data.publications.length === 0) {
+                    container.innerHTML = '<p>No hay publicaciones recientes.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.publications.map(pub => `
+                    <div class="card">
+                        <div class="card-meta">
+                            <span>@${escapeHtml(pub.author.username)}</span>
+                            <span>${formatDate(pub.createdAt)}</span>
+                        </div>
+                        <h3 class="card-title">${escapeHtml(pub.title)}</h3>
+                        <span class="card-tag">${escapeHtml(pub.category)}</span>
+                        <p class="card-body">${escapeHtml(pub.content.substring(0, 200))}...</p>
+                        <div class="card-actions">
+                            <a href="publication.html?id=${pub._id}" class="btn btn-sm">Ver completa</a>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                container.innerHTML = '<p>Error cargando publicaciones.</p>';
+            }
+        };
+
+        loadFeed();
+    </script>
+</body>
+</html>

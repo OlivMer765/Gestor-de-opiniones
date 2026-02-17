@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle Opinión</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">GestorOpiniones</a>
+        <div class="nav-links">
+            <a href="dashboard.html">Volver al Dashboard</a>
+            <button id="logout-btn">Salir</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Detalle de Publicación -->
+        <div id="publication-detail">
+            Cargando...
+        </div>
+
+        <!-- Sección de Comentarios -->
+        <div style="margin-top: 2rem;">
+            <h3>Comentarios</h3>
+            
+            <form id="comment-form" style="margin-top: 1rem; margin-bottom: 2rem;">
+                <div class="form-group">
+                    <textarea id="comment-content" placeholder="Agrega un comentario..." required rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-sm">Comentar</button>
+            </form>
+
+            <div id="comments-list">
+                <!-- Lista de comentarios -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar (Simple) -->
+    <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div style="background:white; max-width:500px; margin: 100px auto; padding:2rem; border-radius:8px;">
+            <h3>Editar Publicación</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="edit-title">
+                </div>
+                <div class="form-group">
+                    <label>Contenido</label>
+                    <textarea id="edit-content" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn">Guardar</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-modal').style.display='none'">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        import { isAuthenticated, logout } from './js/auth.js';
+        import { escapeHtml, formatDate, getUrlParam, showToast, parseJwt } from './js/utils.js';
+        import { CONFIG } from './js/config.js';
+
+        if (!isAuthenticated()) window.location.href = 'login.html';
+        document.getElementById('logout-btn').addEventListener('click', logout);
+
+        const pubId = getUrlParam('id');
+        if (!pubId) window.location.href = 'dashboard.html';
+
+        // Obtener ID del usuario actual desde el Token
+        const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+        const payload = parseJwt(token);
+        const currentUid = payload ? payload.uid : null;
+
+        const loadPublication = async () => {
+            try {
+                const data = await api.get(`/publications/${pubId}`);
+                const pub = data.publication;
+                const comments = data.comments;
+
+                // Renderizar Publicación
+                const container = document.getElementById('publication-detail');
+                
+                // Verificar si soy el autor
+                const isOwner = currentUid === pub.author._id;
+
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-meta">
+                            <span>Autor: ${escapeHtml(pub.author.username)}</span>
+                            <span>${formatDate(pub.createdAt)}</span>
+                        </div>
+                        <h1 class="card-title" style="font-size: 2rem;">${escapeHtml(pub.title)}</h1>
+                        <span class="card-tag">${escapeHtml(pub.category)}</span>
+                        <div class="card-body" style="font-size: 1.1rem; margin-top:1rem; white-space: pre-line;">
+                            ${escapeHtml(pub.content)}
+                        </div>
+                        ${isOwner ? `
+                            <div class="card-actions">
+                                <button id="btn-edit" class="btn btn-secondary btn-sm">Editar</button>
+                                <button id="btn-delete" class="btn btn-danger btn-sm">Eliminar</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Listeners para botones de dueño
+                if (isOwner) {
+                    document.getElementById('btn-delete').onclick = deletePublication;
+                    document.getElementById('btn-edit').onclick = () => openEditModal(pub);
+                }
+
+                // Renderizar Comentarios
+                const commentsList = document.getElementById('comments-list');
+                if (comments.length === 0) {
+                    commentsList.innerHTML = '<p>Sé el primero en comentar.</p>';
+                } else {
+                    commentsList.innerHTML = comments.map(com => `
+                        <div class="card" style="padding: 1rem; border-left: 3px solid #ccc; margin-bottom: 1rem;">
+                            <div class="card-meta">
+                                <strong>${escapeHtml(com.author.username)}</strong>
+                                <span>${formatDate(com.createdAt)}</span>
+                            </div>
+                            <p>${escapeHtml(com.content)}</p>
+                            ${(currentUid === com.author._id) ? `
+                                <div style="text-align:right; margin-top:0.5rem;">
+                                    <button onclick="window.deleteComment('${com._id}')" style="color:red; border:none; background:none; cursor:pointer;">Eliminar</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        // Crear comentario
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('comment-content').value;
+            try {
+                await api.post('/comments', { content, publicationId: pubId });
+                showToast('Comentario enviado', 'success');
+                document.getElementById('comment-content').value = '';
+                loadPublication(); // Recargar
+            } catch (err) {}
+        });
+
+        // Eliminar Publicación
+        const deletePublication = async () => {
+            if (!confirm('¿Seguro que deseas eliminar esta opinión?')) return;
+            try {
+                await api.delete(`/publications/${pubId}`);
+                showToast('Eliminada correctamente');
+                window.location.href = 'dashboard.html';
+            } catch (err) {}
+        };
+
+        // Eliminar Comentario (Global scope para onclick en string literal)
+        window.deleteComment = async (commentId) => {
+            if (!confirm('¿Borrar comentario?')) return;
+            try {
+                await api.delete(`/comments/${commentId}`);
+                showToast('Comentario eliminado');
+                loadPublication();
+            } catch (err) {}
+        };
+
+        // Editar Publicación
+        const openEditModal = (pub) => {
+            document.getElementById('edit-id').value = pub._id;
+            document.getElementById('edit-title').value = pub.title;
+            document.getElementById('edit-content').value = pub.content;
+            document.getElementById('edit-modal').style.display = 'block';
+        };
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('edit-title').value;
+            const content = document.getElementById('edit-content').value;
+            
+            try {
+                await api.put(`/publications/${pubId}`, { title, content });
+                showToast('Actualizado', 'success');
+                document.getElementById('edit-modal').style.display = 'none';
+                loadPublication();
+            } catch (err) {}
+        });
+
+        loadPublication();
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Opiniones - Inicio</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">GestorOpiniones</a>
+        <div class="nav-links" id="nav-links">
+            <!-- Se llena dinámicamente -->
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Últimas Opiniones</h1>
+        <div id="publications-container">
+            <p style="text-align: center;">Cargando...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        import { isAuthenticated, logout } from './js/auth.js';
+        import { escapeHtml, formatDate } from './js/utils.js';
+
+        const navLinks = document.getElementById('nav-links');
+        
+        // Renderizar Navbar
+        if (isAuthenticated()) {
+            navLinks.innerHTML = `
+                <a href="dashboard.html">Dashboard</a>
+                <a href="profile.html">Mi Perfil</a>
+                <button id="logout-btn">Salir</button>
+            `;
+            document.getElementById('logout-btn').addEventListener('click', logout);
+        } else {
+            navLinks.innerHTML = `
+                <a href="login.html">Iniciar Sesión</a>
+                <a href="register.html" class="btn btn-sm">Registrarse</a>
+            `;
+        }
+
+        // Cargar Publicaciones Públicas
+        const loadPublicFeed = async () => {
+            const container = document.getElementById('publications-container');
+            try {
+                // limit=10, page=1
+                const data = await api.get('/publications?limit=10');
+                
+                if (data.publications.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;">No hay publicaciones aún.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.publications.map(pub => `
+                    <div class="card">
+                        <div class="card-meta">
+                            <span>@${escapeHtml(pub.author.username)}</span>
+                            <span>${formatDate(pub.createdAt)}</span>
+                        </div>
+                        <h2 class="card-title">${escapeHtml(pub.title)}</h2>
+                        <span class="card-tag">${escapeHtml(pub.category)}</span>
+                        <div class="card-body">
+                            ${escapeHtml(pub.content.substring(0, 150))}...
+                        </div>
+                        <div class="card-actions">
+                            <a href="${isAuthenticated() ? 'publication.html?id=' + pub._id : 'login.html'}" class="btn btn-sm">
+                                Leer más
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="text-align:center; color:red;">Error al cargar el feed.</p>';
+            }
+        };
+
+        loadPublicFeed();
+    </script>
+</body>
+</html>

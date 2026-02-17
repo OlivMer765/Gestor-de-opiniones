@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">GestorOpiniones</a>
+    </nav>
+
+    <div class="auth-container">
+        <h2 style="text-align: center; margin-bottom: 1.5rem;">Iniciar Sesión</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email o Username</label>
+                <input type="text" id="identifier" required placeholder="ej. usuario o test@mail.com">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn w-100">Ingresar</button>
+        </form>
+        <p style="text-align: center; margin-top: 1rem;">
+            ¿No tienes cuenta? <a href="register.html">Regístrate</a>
+        </p>
+    </div>
+
+    <script type="module">
+        import { loginUser, isAuthenticated } from './js/auth.js';
+        import { showToast } from './js/utils.js';
+
+        if (isAuthenticated()) window.location.href = 'dashboard.html';
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            const password = document.getElementById('password').value;
+            
+            // Botón loading state
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Cargando...';
+            btn.disabled = true;
+
+            const success = await loginUser(identifier, password);
+            if (success) {
+                showToast('Bienvenido!', 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+            } else {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
