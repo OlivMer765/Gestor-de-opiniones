@@ -1,19 +1,19 @@
-import User from './user.model.js';
-import { verifyPassword, encrypt } from '../utils/encrypt.js';
+import User from "./user.model.js";
+import { verifyPassword, encrypt } from "../utils/encrypt.js";
 
 export const getProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        
+
         res.status(200).json({
             success: true,
-            user
+            user,
         });
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error fetching profile',
-            error: err.message
+            message: "Error obteniendo perfil",
+            error: err.message,
         });
     }
 };
@@ -27,7 +27,7 @@ export const updateProfile = async (req, res) => {
         if (rest.role || rest.status) {
             return res.status(403).json({
                 success: false,
-                message: 'Cannot update role or status'
+                message: "No se puede actualizar rol o estado",
             });
         }
 
@@ -35,7 +35,7 @@ export const updateProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found'
+                message: "Usuario no encontrado",
             });
         }
 
@@ -48,30 +48,32 @@ export const updateProfile = async (req, res) => {
             if (!validOldPassword) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Incorrect old password'
+                    message: "Contraseña antigua incorrecta",
                 });
             }
             updateData.password = await encrypt(newPassword);
         } else if (newPassword && !oldPassword) {
-             return res.status(400).json({
+            return res.status(400).json({
                 success: false,
-                message: 'Old password is required to set a new password'
+                message:
+                    "Se requiere la contraseña antigua para establecer una nueva contraseña",
             });
         }
 
-        const updatedUser = await User.findByIdAndUpdate(uid, updateData, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(uid, updateData, {
+            new: true,
+        });
 
         res.status(200).json({
             success: true,
-            message: 'Profile updated successfully',
-            user: updatedUser
+            message: "Perfil actualizado exitosamente",
+            user: updatedUser,
         });
-
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error updating profile',
-            error: err.message
+            message: "Error actualizando perfil",
+            error: err.message,
         });
     }
 };

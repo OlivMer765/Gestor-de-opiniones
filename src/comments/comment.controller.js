@@ -10,7 +10,7 @@ export const createComment = async (req, res) => {
         if (!publication) {
             return res.status(404).json({
                 success: false,
-                message: 'Publication not found or inactive'
+                message: 'Publicación no encontrada o inactiva'
             });
         }
 
@@ -26,14 +26,14 @@ export const createComment = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Comment added',
+            message: 'Comentario agregado exitosamente',
             comment
         });
 
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error adding comment',
+            message: 'Error agregando comentario',
             error: err.message
         });
     }
@@ -55,7 +55,7 @@ export const getCommentsByPublication = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error fetching comments',
+            message: 'Error obteniendo comentarios',
             error: err.message
         });
     }
@@ -72,14 +72,14 @@ export const updateComment = async (req, res) => {
         if (!comment) {
             return res.status(404).json({
                 success: false,
-                message: 'Comment not found'
+                message: 'Comentario no encontrado'
             });
         }
 
         if (comment.author.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Unauthorized: You can only update your own comments'
+                message: 'No autorizado: Solo puedes actualizar tus propios comentarios'
             });
         }
 
@@ -88,14 +88,14 @@ export const updateComment = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Comment updated',
+            message: 'Comentario actualizado exitosamente',
             comment
         });
 
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error updating comment',
+            message: 'Error actualizando comentario',
             error: err.message
         });
     }
@@ -111,14 +111,14 @@ export const deleteComment = async (req, res) => {
         if (!comment) {
             return res.status(404).json({
                 success: false,
-                message: 'Comment not found'
+                message: 'Comentario no encontrado'
             });
         }
 
         if (comment.author.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Unauthorized: You can only delete your own comments'
+                message: 'No autorizado: Solo puedes eliminar tus propios comentarios'
             });
         }
 
@@ -127,13 +127,13 @@ export const deleteComment = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Comment deleted'
+            message: 'Comentario eliminado exitosamente'
         });
 
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error deleting comment',
+            message: 'Error eliminando comentario',
             error: err.message
         });
     }

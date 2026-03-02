@@ -10,7 +10,7 @@ export const register = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: 'Username or email already exists'
+                message: 'Username o email ya existen'
             });
         }
 
@@ -29,7 +29,7 @@ export const register = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'Usuario registrado exitosamente',
             token,
             user: {
                 username: user.username,
@@ -42,7 +42,7 @@ export const register = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error registering user',
+            message: 'Error registrando usuario',
             error: err.message
         });
     }
@@ -59,14 +59,14 @@ export const login = async (req, res) => {
         if (!user) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid credentials'
+                message: 'Credenciales inválidas'
             });
         }
 
         if (!user.status) {
             return res.status(403).json({
                 success: false,
-                message: 'Account is disabled'
+                message: 'Usuario deshabilitado'
             });
         }
 
@@ -74,7 +74,7 @@ export const login = async (req, res) => {
         if (!validPassword) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid credentials'
+                message: 'Credenciales inválidas'
             });
         }
 
@@ -82,7 +82,7 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Login successful',
+            message: 'Login exitoso',
             token,
             user: {
                 username: user.username,
@@ -95,7 +95,7 @@ export const login = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error logging in',
+            message: 'Error iniciando sesión',
             error: err.message
         });
     }
@@ -110,7 +110,7 @@ export const me = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Error fetching user data',
+            message: 'Error obteniendo datos del usuario',
             error: err.message
         });
     }
